@@ -3,7 +3,7 @@ const fetch = require('isomorphic-fetch');
 const cors = require('cors');
 
 const port = 4000;
-// App id for openweathermap
+// App ID for NewsAPI
 const APP_ID = process.env.APP_ID;
 
 // Initialize app and enable cross-origin resource sharing
@@ -12,18 +12,38 @@ app.use(cors());
 
 // GET /
 app.get('/', (req, res) => {
-    // Fetch Seattle weather
-    fetch(`https://api.openweathermap.org/data/2.5/weather?q=Seattle&appid=${APP_ID}`)
+    // Fetch News API sources list
+    fetch(`https://newsapi.org/v2/sources?apiKey=${APP_ID}`)
         .then(response => response.json())
         .then(data => {
             // Call res.json with an object to return data
             return res.json({
-                weather: data,
+                sources: data,
                 path: req.path,
                 query: req.query
             });
         });
 });
+
+// GET /:source
+app.get('/:source', (req, res) => {
+    // Fetch specific news source's article list
+    const sourceID = req.params.source;
+    console.log(sourceID);
+    fetch(`https://newsapi.org/v2/top-headlines?pageSize=5&sources=${sourceID}&apiKey=${APP_ID}`)
+        .then(response => response.json())
+        .then(data => {
+            // Call res.json with an object to return data
+            return res.json({
+                data: data,
+                path: req.path,
+                query: req.query,
+                params: req.params
+            });
+        });
+});
+
+module.exports = app;
 
 // Start the app on the provided port
 app.listen(port, () => {
